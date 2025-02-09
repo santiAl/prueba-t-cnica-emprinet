@@ -80,6 +80,39 @@ docker-compose up
 
 ---
 
+## 📡 API Endpoints
+
+### 🏥 Pacientes (`/patients`)
+- **POST** `/patients` → Crear un paciente.
+- **GET** `/patients` → Obtener la lista de pacientes.
+- **GET** `/patients/<id>` → Obtener un paciente por su ID.
+- **PUT** `/patients/<id>` → Actualizar un paciente.
+- **DELETE** `/patients/<id>` → Eliminar un paciente.
+
+### 📅 Turnos (`/appointments`)
+- **POST** `/appointments` → Crear un turno (asociado a un paciente).
+- **GET** `/appointments` → Obtener la lista de turnos.
+- **GET** `/appointments/<id>` → Obtener un turno por su ID.
+- **PUT** `/appointments/<id>` → Actualizar un turno.
+- **DELETE** `/appointments/<id>` → Eliminar un turno.
+
+### 👤 Usuarios (`/user`)
+- **GET** `/user` → Obtener todos los usuarios.
+- **POST** `/user` → Crear un usuario.
+  - **Formato requerido:** `{ "username": "nombre", "password_hash": "contraseña" }`
+  - Este usuario es necesario para obtener el token y acceder a la ruta protegida.
+
+### 🔐 Autenticación JWT (`/auth`)
+- **POST** `/auth` → Iniciar sesión y obtener un token.
+  - **Ejemplo de credenciales:** `{ "username": "santi", "password_hash": "prueba123" }`
+
+### 🔒 Ruta Protegida (`/`)
+- **GET** `/` → Acceso solo con token JWT (para probar la autenticación).
+
+---
+
 ✅ **Listo! Tu aplicación debería estar corriendo correctamente.** 🚀
+
+
 
 
