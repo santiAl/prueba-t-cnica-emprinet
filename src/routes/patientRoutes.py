@@ -51,8 +51,7 @@ def create_patient():
 
         patient_data = patient_schema.load(data)
 
-
-        # Crear un nuevo paciente usando el servicio
+        # Creaa un nuevo paciente usando el servicio
         patient_service = PatientService(db)
         patient = patient_service.create_patient(
             patient_data['name'], patient_data['last_name'],patient_data['email'], patient_data['dni'] , patient_data.get('birthdate'), patient_data.get('phone_number')
@@ -82,7 +81,7 @@ def get_patient(patient_id):
     - **Respuesta exitosa**: Codigo 200, paciente encontrado
     - **Errores posibles**: Codigo 404, paciente no encontrado. Codigo 500, error inesperado
     """
-        
+    # Se crea el servicio para obtener la info correspondiente
     patient_service = PatientService(db)
     try:
         patient = patient_service.get_patient_by_id(patient_id)
@@ -105,15 +104,17 @@ def update_patient(patient_id):
     - **Respuesta exitosa**: Codigo 200, paciente actualizado
     - **Errores posibles**: Codigo 400, error de validación. Codigo 404, paciente no encontrado. Codigo 500, error inesperado
     """
-
+    # Se inicia el servicio para obtener la info correspondiente
     patient_service = PatientService(db)
     try:
         data = request.get_json()
-        patient_data = patient_schema.load(data, partial=True)  # Permitir actualización parcial
+        # Aqui se realiza la validacion de los datos
+        patient_data = patient_schema.load(data, partial=True)
         patient = patient_service.update_patient(patient_id, patient_data)
         return jsonify({'status': 'success','data': patient_schema.dump(patient)}), 200
     
     except ValidationError as err:
+        # Si los datos no son válidos, Marshmallow lanzará un ValidationError
         return jsonify({"status": "error","message": "Validation failed","details": err.messages }), 400
     except (AlreadyExistsError,NotFoundError) as e:
         return jsonify({"status": "error","message": "Ha ocurrido un error inesperado","details": {"message": str(e)}  }), 400

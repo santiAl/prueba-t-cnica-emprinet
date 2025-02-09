@@ -19,16 +19,13 @@ def get_all_appointments():
     """
 
     try:
+        # Se usa el servicio para obtener la info correspondiente
         appointment_service = AppointmentService(db)
-        # Usar el servicio para obtener todos los pacientes
         appointments = appointment_service.get_all_appointments()
         
         appointment_list = appointments_schema.dump(appointments)
 
-        return jsonify({
-            'status':'success',
-            'data': appointment_list
-            }),200
+        return jsonify({'status':'success','data': appointment_list}),200
 
     except Exception as e:
         return jsonify({"status": "error","message": "An unexpected error occurred","details": {"message": str(e)}  }), 500
@@ -50,18 +47,16 @@ def create_appointment():
     try:
         data = request.get_json()
 
-        # Validación con Marshmallow
+        # Aqui se realiza la validacion de los datos
         validated_data = appointment_schema.load(data)
 
         appointment_service = AppointmentService(db)
         new_appointment = appointment_service.create_appointment(validated_data)
 
-        return jsonify({
-            'status': 'success',
-            'data': appointment_schema.dump(new_appointment)
-        }), 201
+        return jsonify({'status': 'success','data': appointment_schema.dump(new_appointment)}), 201
 
     except ValidationError as err:
+        # Si los datos no son válidos, Marshmallow lanzara un ValidationError
         return jsonify({"status": "error","message": "Validation failed","details": err.messages}), 400
     except ForeignKeyError as e:
         return jsonify({"status": "error","message": "Ha ocurrido un error inesperado","details": {"message": str(e)}  }), 400
@@ -85,10 +80,7 @@ def get_appointment(appointment_id):
         appointment_service = AppointmentService(db)
         appointment = appointment_service.get_appointment_by_id(appointment_id)
         
-        return jsonify({
-            'status': 'success',
-            'data': appointment_schema.dump(appointment)
-        }), 200
+        return jsonify({'status': 'success','data': appointment_schema.dump(appointment)}), 200
 
     except NotFoundError as e:
         return jsonify({"status": "error","message": "No se pudo encontrar un paciente con ese ID","details": {"message": str(e)}  }), 404
@@ -112,16 +104,14 @@ def update_appointment(appointment_id):
     try:
         appointment_service = AppointmentService(db)
         data = request.get_json()
-        appointment_data = appointment_schema.load(data, partial=True)  # Permitir actualización parcial
+        # Aqui se realiza la validacion de los datos
+        appointment_data = appointment_schema.load(data, partial=True)
         updated_appointment = appointment_service.update_appointment(appointment_id, appointment_data)
         
-        return jsonify({
-            'status': 'success',
-            'data': appointment_schema.dump(updated_appointment)
-        }), 200
+        return jsonify({'status': 'success','data': appointment_schema.dump(updated_appointment)}), 200
         
-
     except ValidationError as err:
+        # Si los datos no son válidos, Marshmallow lanzara un ValidationError
         return jsonify({"status": "error","message": "Validation failed","details": err.messages }), 400
     except NotFoundError as e:
         return jsonify({"status": "error","message": "Ha ocurrido un error inesperado","details": {"message": str(e)}  }), 404

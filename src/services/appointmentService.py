@@ -63,6 +63,7 @@ class AppointmentService:
             self.db.session.commit()
             return new_appointment
         except Exception as e:
+            # Si surgio un error, volvemos atras
             self.db.session.rollback()
             # Verifica si el error es por clave foránea
             if "foreign key" in str(e.orig).lower():  
@@ -86,21 +87,21 @@ class AppointmentService:
             Appointment: El objeto Appointment actualizado.
         """
 
-
+        # Aca si no encuentra, el servicio invocado se encarga de lanzar la excepcion
         appointment = self.get_appointment_by_id(appointment_id)
-        if not appointment:
-            raise NotFoundError(f"No se encontró el turno con ID {appointment_id}")
 
         if self.appointment_exists(data['patient_id'], data['date_time'], exclude_appointment_id=appointment_id):
             raise AlreadyExistsError("Ya existe otro turno para este paciente en la misma fecha y hora.")
 
+        # Actualizacion de los campos
         for key, value in data.items():
-            setattr(appointment, key, value)  # Actualizar los campos dinámicamente
+            setattr(appointment, key, value)  
 
         try:
             self.db.session.commit()
             return appointment
         except Exception as e:
+            # Si surgio un error, volvemos atras
             self.db.session.rollback()
             if "foreign key" in str(e.orig).lower():  
                 raise ForeignKeyError("El paciente especificado no existe") 
@@ -121,6 +122,7 @@ class AppointmentService:
             Appointment: El objeto Appointment que se elimino.
         """
 
+        # Aca si no encuentra, el servicio invocado se encarga de lanzar la excepcion
         appointment = self.get_appointment_by_id(appointment_id)
 
         try:
@@ -128,6 +130,7 @@ class AppointmentService:
             self.db.session.commit()
             return appointment
         except Exception as e:
+            # Si surgio un error, volvemos atras
             self.db.session.rollback()
             raise e
 

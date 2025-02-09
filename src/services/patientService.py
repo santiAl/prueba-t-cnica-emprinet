@@ -55,18 +55,18 @@ class PatientService:
             Patient: El objeto Patient creado.
         """
         
-        # Verificar si ya existe un paciente con el mismo correo electrónico
+        # Verifica si ya existe un paciente con el mismo correo electrónico o dni
         existing_patient = self.db.session.query(Patient).filter(
             or_(
-                Patient.email == email,  # Buscar por email
-                Patient.dni == dni       # Buscar por dni
+                Patient.email == email,  # Busca por email
+                Patient.dni == dni       # Busca por dni
             )
         ).first()
         
         if existing_patient:
             raise AlreadyExistsError('El email o dni ya estan registrados')
         
-        # Crear un nuevo paciente
+        # Crea un nuevo paciente
         new_patient = Patient(
             name=name,
             last_name=last_name,
@@ -76,16 +76,16 @@ class PatientService:
             dni=dni
         )
         
-        # Agregar el nuevo paciente a la base de datos
+        # Agrega el nuevo paciente a la base de datos
         try:
             self.db.session.add(new_patient)
             self.db.session.commit()
+            return new_patient 
         except Exception as e:
-            self.db.session.rollback()  # Deshacer cualquier cambio si ocurre un error
-            raise e  # Relanzo la excepcion para que sea capturada por quien invoque el servicio.
-        
-        # Devolver el paciente creado con su ID
-        return new_patient  # Ahora devuelves el objeto Patient completo
+            # Si surgio un error, se vuelve atras
+            self.db.session.rollback()  
+            # Relanzo la excepcion para que sea capturada por quien invoque el servicio.
+            raise e 
 
 
 
@@ -107,7 +107,7 @@ class PatientService:
         if 'email' in data or 'dni' in data:
             email = data.get('email')
             dni = data.get('dni')
-            # Verificar si ya existe un paciente con el mismo email o dni
+            # Verifica si ya existe un paciente con el mismo email o dni
             existing_patient = self.db.session.query(Patient).filter(
                 or_(
                     Patient.email == email,  # Buscar por email
@@ -117,10 +117,12 @@ class PatientService:
             if existing_patient and existing_patient.id != patient_id:
                 raise AlreadyExistsError('El email o el DNI ya están en uso por otro paciente.')
         
+        # Busca el paciente y si no lo encuentra el servicio invocado lanza una excepcion que luego puede ser capturada por la ruta.
         patient = self.get_patient_by_id(patient_id)
-            
+        
+        # Actualizacion de los campos
         for key, value in data.items():
-            setattr(patient, key, value)  # Actualizar los campos dinámicamente
+            setattr(patient, key, value)  
 
         try:
             self.db.session.commit()
