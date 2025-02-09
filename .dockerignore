@@ -1,0 +1,16 @@
+
+# Ignora archivos de Python compilados
+__pycache__/
+*.pyc
+
+# Ignora .env y el entorno virtual
+venv/
+.env
+
+# Ignora configuracion de docker
+Dockerfile
+.dockerignore
+
+# Ignora archivos de git
+.git
+.gitignore

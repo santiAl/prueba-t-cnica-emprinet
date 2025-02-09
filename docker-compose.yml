@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: FlaskApp
+    ports:
+      - "5000:5000"  
+    environment:
+      - DATABASE_URL=postgresql://emprinet:49ainmKy0TxgOFW@206.189.182.199:5432/clinia 
+      - JWT_KEY=MIHcAgEBBEIAhFuGMfb4ucwO9Mdi80UuVUxBAWpyJ2NiHViEI2aSwtMEoGBQXXh1JOjVl
+
