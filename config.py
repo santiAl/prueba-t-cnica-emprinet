@@ -2,7 +2,7 @@ from decouple import config
 
 
 class Config():
-    SECREAT_KEY = 'dev-secret-key'
+    SECREAT_KEY = config('SECRET_KEY')
 
 
 class DevelopmentConfig(Config):

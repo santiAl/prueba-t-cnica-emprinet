@@ -18,7 +18,7 @@ def login_user():
         user_data = schema.load(data)  
 
         auth_service = AuthService(db)
-        user = auth_service.authenticate_user(user_data['email'], user_data['password_hash'])
+        user = auth_service.authenticate_user(user_data['username'], user_data['password_hash'])
 
         if(user != None):
             encoded_token = Security.generate_token(user)

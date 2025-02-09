@@ -7,7 +7,7 @@ from .. import db
 from marshmallow import ValidationError
 from ..schemas.patientSchema import PatientSchema
 from ..schemas.patientSchema import patient_schema , patients_schema
-from ..exceptions.servicesExceptions import PatientAlreadyExistsError,NotFoundError
+from ..exceptions.servicesExceptions import AlreadyExistsError,NotFoundError
 
 patient_bp = Blueprint('patient', __name__)
 
@@ -27,10 +27,10 @@ def get_all_patients():
             }),200
     except Exception as e:
         return jsonify({
-            "status": "error",
-            "data": None,
-            "errors": {"general": str(e)}
-        }), 400
+                "status": "error",
+                "message": "An unexpected error occurred",
+                "details": {"message": str(e)}  
+            }), 500
 
 @patient_bp.route('/', methods=['POST'])
 def create_patient():
@@ -44,7 +44,7 @@ def create_patient():
         # Crear un nuevo paciente usando el servicio
         patient_service = PatientService(db)
         patient = patient_service.create_patient(
-            patient_data['name'], patient_data['last_name'], patient_data['email'], patient_data['birthdate'], patient_data['phone_number']
+            patient_data['name'], patient_data['last_name'],patient_data['email'], patient_data['dni'] , patient_data.get('birthdate'), patient_data.get('phone_number')
         )
 
         return jsonify({
@@ -56,26 +56,24 @@ def create_patient():
         # Si los datos no son válidos, Marshmallow lanzará un ValidationError
         return jsonify({
             "status": "error",
-            "data": None,
-            "errors": {
-                "validation": err.messages
-            }
+            "message": "Validation failed",
+            "details": err.messages  # Los detalles del error de Marshmallow
         }), 400
 
-    except IntegrityError as e:
+    except AlreadyExistsError as e:
         return jsonify({
-            "status": "error",
-            "data": None,
-            "errors": {"general": str(e)}
-        }), 400
+                "status": "error",
+                "message": "Ha ocurrido un error inesperado",
+                "details": {"message": str(e)}  # Detalle general como objeto
+            }), 400
 
     except Exception as e:
         # Capturar cualquier otro tipo de error y devolverlo
         return jsonify({
-            'status': 'error',
-            'data': None,
-            "errors": {"general": str(e)}
-        }), 400
+                "status": "error",
+                "message": "Ha ocurrido un error inesperado",
+                "details": {"message": str(e)}  # Detalle general como objeto
+            }), 500
 
 
 
@@ -92,10 +90,17 @@ def get_patient(patient_id):
         }), 201
     except NotFoundError as e:
         return jsonify({
-            'status': 'error',
-            'data': None,
-            "errors": {"general": str(e)}
-        }), 400
+                "status": "error",
+                "message": "No se pudo encontrar un paciente con ese ID",
+                "details": {"message": str(e)}  
+            }), 404
+    except Exception as e:  
+        return jsonify({
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
+        }), 500  
+
 
 
 @patient_bp.route('/<int:patient_id>', methods=['PUT'])
@@ -109,27 +114,26 @@ def update_patient(patient_id):
         return jsonify({
             'status': 'success',
             'data': patient_schema.dump(patient)
-        }), 201
+        }), 200
     except ValidationError as err:
         return jsonify({
             "status": "error",
-            "data": None,
-            "errors": {
-                "validation": err.messages
-            }
+            "message": "Validation failed",
+            "details": err.messages  # Los detalles del error de Marshmallow
         }), 400
-    except PatientAlreadyExistsError as e:
+    except (AlreadyExistsError,NotFoundError) as e:
         return jsonify({
-            'status': 'error',
-            'data': None,
-            "errors": {"general": str(e)}
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
         }), 400
-    except NotFoundError as e:
+    except Exception as e:  
         return jsonify({
-            'status': 'error',
-            'data': None,
-            "errors": {"general": str(e)}
-        }), 404
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
+        }), 500  
+
 
 @patient_bp.route('/<int:patient_id>', methods=['DELETE'])
 def delete_patient(patient_id):
@@ -143,8 +147,14 @@ def delete_patient(patient_id):
         }), 200
     except NotFoundError as e:
         return jsonify({
-            'status': 'error',
-            'data': None,
-            "errors": {"general": str(e)}
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
         }), 404
+    except Exception as e:  
+        return jsonify({
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
+        }), 500  
 

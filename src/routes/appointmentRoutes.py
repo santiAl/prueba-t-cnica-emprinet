@@ -4,17 +4,30 @@ from ..services.appointmentService import AppointmentService
 from .. import db
 from ..schemas.appointmentSchema import appointments_schema, appointment_schema
 from marshmallow import ValidationError
-from ..exceptions.servicesExceptions import NotFoundError
+from ..exceptions.servicesExceptions import NotFoundError, AlreadyExistsError,ForeignKeyError
 
 appointment_bp = Blueprint('appointment', __name__)
 
 @appointment_bp.route('/', methods=['GET'])
 def get_all_appointments():
-    appointment_service = AppointmentService(db)
-    # Usar el servicio para obtener todos los pacientes
-    appointments = appointment_service.get_all_appointments()
-    
-    return jsonify(appointments_schema.dump(appointments)), 200
+    try:
+        appointment_service = AppointmentService(db)
+        # Usar el servicio para obtener todos los pacientes
+        appointments = appointment_service.get_all_appointments()
+        
+        appointment_list = appointments_schema.dump(appointments)
+
+        return jsonify({
+            'status':'success',
+            'data': appointment_list
+            }),200
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": "An unexpected error occurred",
+            "details": {"message": str(e)}  
+        }), 500
 
 
 @appointment_bp.route('/', methods=['POST'])
@@ -28,40 +41,89 @@ def create_appointment():
         appointment_service = AppointmentService(db)
         new_appointment = appointment_service.create_appointment(validated_data)
 
-        return jsonify(appointment_schema.dump(new_appointment)), 200
+        return jsonify({
+            'status': 'success',
+            'data': appointment_schema.dump(new_appointment)
+        }), 201
 
     except ValidationError as err:
-        return jsonify({"error": err.messages}), 400
+        return jsonify({
+            "status": "error",
+            "message": "Validation failed",
+            "details": err.messages  # Los detalles del error de Marshmallow
+        }), 400
+    except ForeignKeyError as e:
+        return jsonify({
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
+        }), 400
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
+        }), 500  
     
 
 @appointment_bp.route('/<int:appointment_id>', methods=['GET'])
 def get_appointment(appointment_id):
-    appointment_service = AppointmentService(db)
-    appointment = appointment_service.get_appointment_by_id(appointment_id)
-    
-    if not appointment:
-        return jsonify({"error": "Turno no encontrado"}), 404
+    try:
+        appointment_service = AppointmentService(db)
+        appointment = appointment_service.get_appointment_by_id(appointment_id)
+        
+        return jsonify({
+            'status': 'success',
+            'data': appointment_schema.dump(appointment)
+        }), 200
 
-    return jsonify(appointment_schema.dump(appointment)), 200
+    except NotFoundError as e:
+        return jsonify({
+                "status": "error",
+                "message": "No se pudo encontrar un paciente con ese ID",
+                "details": {"message": str(e)}  
+            }), 404
+    except Exception as e:  
+        return jsonify({
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
+        }), 500  
+
+
 
 @appointment_bp.route('/<int:appointment_id>', methods=['PUT'])
 def update_appointment(appointment_id):
     try:
-        data = request.get_json()
         appointment_service = AppointmentService(db)
-        updated_appointment = appointment_service.update_appointment(appointment_id, data)
-
-        if not updated_appointment:
-            return jsonify({"error": "Turno no encontrado"}), 404
-
-        return jsonify(appointment_schema.dump(updated_appointment)), 200
+        data = request.get_json()
+        appointment_data = appointment_schema.load(data, partial=True)  # Permitir actualización parcial
+        updated_appointment = appointment_service.update_appointment(appointment_id, appointment_data)
+        
+        return jsonify({
+            'status': 'success',
+            'data': appointment_schema.dump(updated_appointment)
+        }), 200
+        
 
     except ValidationError as err:
-        return jsonify({"error": err.messages}), 400
+        return jsonify({
+            "status": "error",
+            "message": "Validation failed",
+            "details": err.messages  # Los detalles del error de Marshmallow
+        }), 400
+    except NotFoundError as e:
+        return jsonify({
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
+        }), 404
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
+        }), 500  
     
 
 @appointment_bp.route('/<int:appointment_id>', methods=['DELETE'])
@@ -74,6 +136,14 @@ def delete_appointment(appointment_id):
             return jsonify({"message": f"El turno {appointment.id} fue eliminado correctamente"}), 200
 
     except NotFoundError as e:
-        return jsonify({"error": str(e)}), 404  # No se encontró el recurso
+        return jsonify({
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
+        }), 404
     except Exception as e:
-        return jsonify({"error": str(e)}), 500  # Error interno
+        return jsonify({
+            "status": "error",
+            "message": "Ha ocurrido un error inesperado",
+            "details": {"message": str(e)}  
+        }), 500  

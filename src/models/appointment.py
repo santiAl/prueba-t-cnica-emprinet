@@ -5,7 +5,7 @@ class Appointment(db.Model):
     __tablename__ = "appointments"
 
     id = db.Column(db.Integer, primary_key=True)
-    pacient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
     date_time = db.Column(db.DateTime, nullable=False)
     reason = db.Column(db.String(255), nullable=True)  
     state = db.Column(db.String(50), default="pendiente")   

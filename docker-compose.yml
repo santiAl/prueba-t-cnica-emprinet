@@ -11,4 +11,5 @@ services:
     environment:
       - DATABASE_URL=postgresql://emprinet:49ainmKy0TxgOFW@206.189.182.199:5432/clinia 
       - JWT_KEY=MIHcAgEBBEIAhFuGMfb4ucwO9Mdi80UuVUxBAWpyJ2NiHViEI2aSwtMEoGBQXXh1JOjVl
+      - SECRET_KEY=b4e8f1d2c7a94e3f9d6b2a1f8c5e0d3a7e9b4c2d1f6a8e5c0d7b9f3a2e1c4d8
 
