@@ -10,6 +10,14 @@ appointment_bp = Blueprint('appointment', __name__)
 
 @appointment_bp.route('/', methods=['GET'])
 def get_all_appointments():
+    """
+    Obtiene todos los turnos.
+    - **Metodo**: GET
+    - **Parametros**: Ninguno
+    - **Respuesta exitosa**: Codigo 200, lista de turnos
+    - **Errores posibles**: Codigo 500, error inesperado
+    """
+
     try:
         appointment_service = AppointmentService(db)
         # Usar el servicio para obtener todos los pacientes
@@ -23,15 +31,22 @@ def get_all_appointments():
             }),200
 
     except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": "An unexpected error occurred",
-            "details": {"message": str(e)}  
-        }), 500
+        return jsonify({"status": "error","message": "An unexpected error occurred","details": {"message": str(e)}  }), 500
+
+
+
 
 
 @appointment_bp.route('/', methods=['POST'])
 def create_appointment():
+    """
+    Crea un nuevo turno.
+    - **Metodo**: POST
+    - **Parámetros**: JSON con los datos del turno
+    - **Respuesta exitosa**: Codigo 201, turno creado
+    - **Errores posibles**: Codigo 400, error de validación o clave foránea. Codigo 500, error inesperado
+    """
+    
     try:
         data = request.get_json()
 
@@ -47,27 +62,25 @@ def create_appointment():
         }), 201
 
     except ValidationError as err:
-        return jsonify({
-            "status": "error",
-            "message": "Validation failed",
-            "details": err.messages  # Los detalles del error de Marshmallow
-        }), 400
+        return jsonify({"status": "error","message": "Validation failed","details": err.messages}), 400
     except ForeignKeyError as e:
-        return jsonify({
-            "status": "error",
-            "message": "Ha ocurrido un error inesperado",
-            "details": {"message": str(e)}  
-        }), 400
+        return jsonify({"status": "error","message": "Ha ocurrido un error inesperado","details": {"message": str(e)}  }), 400
     except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": "Ha ocurrido un error inesperado",
-            "details": {"message": str(e)}  
-        }), 500  
+        return jsonify({"status": "error","message": "Ha ocurrido un error inesperado","details": {"message": str(e)}  }), 500  
     
+
+
 
 @appointment_bp.route('/<int:appointment_id>', methods=['GET'])
 def get_appointment(appointment_id):
+    """
+    Obtiene un turno por ID.
+    - **Metodo**: GET
+    - **Parametros**: ID del turno
+    - **Respuesta exitosa**: Codigo 200, turno encontrado
+    - **Errores posibles**: Codigo 404, turno no encontrado. Codigo 500, error inesperado
+    """
+
     try:
         appointment_service = AppointmentService(db)
         appointment = appointment_service.get_appointment_by_id(appointment_id)
@@ -78,22 +91,24 @@ def get_appointment(appointment_id):
         }), 200
 
     except NotFoundError as e:
-        return jsonify({
-                "status": "error",
-                "message": "No se pudo encontrar un paciente con ese ID",
-                "details": {"message": str(e)}  
-            }), 404
+        return jsonify({"status": "error","message": "No se pudo encontrar un paciente con ese ID","details": {"message": str(e)}  }), 404
     except Exception as e:  
-        return jsonify({
-            "status": "error",
-            "message": "Ha ocurrido un error inesperado",
-            "details": {"message": str(e)}  
-        }), 500  
+        return jsonify({"status": "error","message": "Ha ocurrido un error inesperado","details": {"message": str(e)}  }), 500  
+
+
 
 
 
 @appointment_bp.route('/<int:appointment_id>', methods=['PUT'])
 def update_appointment(appointment_id):
+    """
+    Actualiza un turno por ID.
+    - **Metodo**: PUT
+    - **Parametros**: ID del turno y datos del turno (parciales)
+    - **Respuesta exitosa**: Codigo 200, turno actualizado
+    - **Errores posibles**: Codigo 400: error de validación. Codigo 404: turno no encontrado. Codigo 500: error inesperado
+    """
+
     try:
         appointment_service = AppointmentService(db)
         data = request.get_json()
@@ -107,27 +122,27 @@ def update_appointment(appointment_id):
         
 
     except ValidationError as err:
-        return jsonify({
-            "status": "error",
-            "message": "Validation failed",
-            "details": err.messages  # Los detalles del error de Marshmallow
-        }), 400
+        return jsonify({"status": "error","message": "Validation failed","details": err.messages }), 400
     except NotFoundError as e:
-        return jsonify({
-            "status": "error",
-            "message": "Ha ocurrido un error inesperado",
-            "details": {"message": str(e)}  
-        }), 404
+        return jsonify({"status": "error","message": "Ha ocurrido un error inesperado","details": {"message": str(e)}  }), 404
     except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": "Ha ocurrido un error inesperado",
-            "details": {"message": str(e)}  
-        }), 500  
+        return jsonify({"status": "error","message": "Ha ocurrido un error inesperado","details": {"message": str(e)}  }), 500  
     
+
+
+
+
 
 @appointment_bp.route('/<int:appointment_id>', methods=['DELETE'])
 def delete_appointment(appointment_id):
+    """
+    Elimina un turno por ID.
+    - **Metodo**: DELETE
+    - **Parametros**: ID del turno
+    - **Respuesta exitosa**: Codigo 200, turno eliminado
+    - **Errores posibles**: Codigo 404, turno no encontrado. Codigo 500, error inesperado
+    """
+
     appointment_service = AppointmentService(db)
     try:
         appointment = appointment_service.delete_appointment(appointment_id)
@@ -136,14 +151,6 @@ def delete_appointment(appointment_id):
             return jsonify({"message": f"El turno {appointment.id} fue eliminado correctamente"}), 200
 
     except NotFoundError as e:
-        return jsonify({
-            "status": "error",
-            "message": "Ha ocurrido un error inesperado",
-            "details": {"message": str(e)}  
-        }), 404
+        return jsonify({"status": "error","message": "Ha ocurrido un error inesperado","details": {"message": str(e)} }), 404
     except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": "Ha ocurrido un error inesperado",
-            "details": {"message": str(e)}  
-        }), 500  
+        return jsonify({"status": "error","message": "Ha ocurrido un error inesperado","details": {"message": str(e)} }), 500  

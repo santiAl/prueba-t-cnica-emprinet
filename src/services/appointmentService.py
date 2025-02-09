@@ -7,19 +7,47 @@ class AppointmentService:
         self.db = db  
 
     def get_all_appointments(self):
+        """
+        Obtiene todos los turnos de la base de datos.
+        Retorna:
+            list: Una lista de objetos Appointment que representan todos los turnos almacenados.
+        """
+
         patients = self.db.session.query(Appointment).all()
         return patients
     
 
     def get_appointment_by_id(self, appointment_id):
-        """ Obtiene un turno por su ID """
+        """
+        Obtiene un turno por su ID.
+        Args:
+            appointment_id (int): El ID del turno a recuperar.
+        Raises:
+            NotFoundError: Si no se encuentra un turno con el ID.
+        Retorna:
+            Appointment: Un objeto Appointment que representa el turno encontrado.
+        """
+
         appointment = self.db.session.query(Appointment).filter_by(id=appointment_id).first()
         if not appointment:
             raise NotFoundError(f"No se encontró el turno con ID {appointment_id}")
         return appointment
 
+
+
     def create_appointment(self, data):
-        """ Crea un nuevo turno """
+        """
+        Crea un nuevo turno en la base de datos.
+        Args:
+            data (dict): Un diccionario con la informacion del turno.
+        Raises:
+            AlreadyExistsError: Si el paciente ya tiene un turno en la fecha y hora solicitada.
+            ForeignKeyError: Si el paciente no existe en la base de datos.
+        Retorna:
+            Appointment: El objeto Appointment creado.
+        """
+
+
         if self.appointment_exists(data['patient_id'], data['date_time']):
             raise AlreadyExistsError("El paciente ya tiene un turno en esta fecha y hora.")
 
@@ -41,8 +69,24 @@ class AppointmentService:
                 raise ForeignKeyError("El paciente especificado no existe")  
             raise e  # Relanza la excepción si es otro error de integridad
     
+
+
+
     def update_appointment(self, appointment_id, data):
-        """ Actualiza un turno por su ID """
+        """
+        Actualiza un turno existente en la base de datos.
+        Args:
+            appointment_id (int): El ID del turno que se va a actualizar.
+            data (dict): Un diccionario con los nuevos datos para el turno.
+        Raises:
+            NotFoundError: Si no se encuentra un turno con el ID proporcionado.
+            AlreadyExistsError: Si ya existe un turno para el paciente en la misma fecha y hora.
+            ForeignKeyError: Si el paciente especificado no existe.
+        Retorna:
+            Appointment: El objeto Appointment actualizado.
+        """
+
+
         appointment = self.get_appointment_by_id(appointment_id)
         if not appointment:
             raise NotFoundError(f"No se encontró el turno con ID {appointment_id}")
@@ -63,8 +107,20 @@ class AppointmentService:
             raise e # Relanzo la excepcion para que sea capturada por quien invoque el servicio.
         
 
+
+
+
     def delete_appointment(self, appointment_id):
-        """ Elimina un turno por su ID """
+        """
+        Elimina un turno por su ID.
+        Args:
+            appointment_id (int): El ID del turno que se va a eliminar.
+        Raises:
+            Exception: Si ocurre algun error al eliminar el turno.
+        Retorna:
+            Appointment: El objeto Appointment que se elimino.
+        """
+
         appointment = self.get_appointment_by_id(appointment_id)
 
         try:
@@ -76,8 +132,19 @@ class AppointmentService:
             raise e
 
 
+
+
     def appointment_exists(self, patient_id, date_time, exclude_appointment_id=None):
-        """ Verifica si ya existe un turno para el paciente en la fecha y hora dadas. """
+        """
+        Verifica si ya existe un turno para el paciente en la fecha y hora dadas.
+        Args:
+            patient_id (int): El ID del paciente.
+            date_time (datetime): La fecha y hora del turno.
+            exclude_appointment_id (int, opcional): En el caso de el update se pasaria para que no compare con el resgistro que estamos actializando.
+        Retorna:
+            bool: True si ya existe un turno para el paciente en la fecha y hora dadas, de lo contrario False.
+        """
+
         query = self.db.session.query(Appointment).filter(
             Appointment.patient_id == patient_id,
             Appointment.date_time == date_time
