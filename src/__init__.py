@@ -22,9 +22,9 @@ def init_app(config):
     with app.app_context():
         from src.models import user , appointment , patient  
 
-    from .routes import main_route , patientRoutes, appointmentRoutes , userRoutes , authRoutes
-    # Blueprints
-    app.register_blueprint(main_route.main_bp,url_prefix='/')
+    from .routes import protectedRoute , patientRoutes, appointmentRoutes , userRoutes , authRoutes
+    # Blueprints con los prefijos para las rutas
+    app.register_blueprint(protectedRoute.protected_bp,url_prefix='/')
     app.register_blueprint(patientRoutes.patient_bp,url_prefix='/patients')
     app.register_blueprint(appointmentRoutes.appointment_bp,url_prefix='/appointments')
     app.register_blueprint(userRoutes.user_bp,url_prefix='/user')

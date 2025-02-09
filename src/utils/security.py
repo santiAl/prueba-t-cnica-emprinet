@@ -32,7 +32,7 @@ class Security():
 
         payload={
             'iat': datetime.datetime.now(tz=self.tz),
-            'exp': datetime.datetime.now(tz=self.tz) + datetime.timedelta(minutes=10),   # Aca se puede cambiar el tiempo de expiracion del toquen
+            'exp': datetime.datetime.now(tz=self.tz) + datetime.timedelta(minutes=5),   # Aca se puede cambiar el tiempo de expiracion del toquen. Podria ser ej: seconds=30
             'username': authenticated_user.username
         }
         return jwt.encode(payload,self.secret,algorithm="HS256")
